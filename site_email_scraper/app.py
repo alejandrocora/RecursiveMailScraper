@@ -19,29 +19,35 @@ class site_browser:
             'User-agent':DEFAULT_HEADER
         })
 
-    def get_emails(text):
-        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    def get_emails(self, text):
+        email_pattern = r'[a-zA-Z0-9._%+-]+@'+self.domain
         return re.findall(email_pattern, text)
 
     def scrap_emails(self, depth):
         html = unescape(self.session.get(self.url).text)
         soup = BeautifulSoup(html, 'html.parser')
-        self.emails = self.emails + list(set(site_browser.get_emails(html)))
-        links = soup.find_all('a')
-        paths = [urllib.parse.urlparse(link.get('href'), scheme='', allow_fragments=True).path for link in links if self.domain in str(urllib.parse.urlparse(link.get('href'), scheme='', allow_fragments=True).netloc)]
-        new_paths = []
+        self.emails = list(set(self.get_emails(html)))
+        new_paths = [link.get('href') for link in soup.find_all('a') if self.domain in str(urllib.parse.urlparse(link.get('href'), scheme='', allow_fragments=True).netloc)]
+        old_paths = []
         while depth != 0:
-            for link in links:
-                self.emails = self.emails + site_browser.get_emails(self.session.get(link))
-
+            paths = new_paths
+            new_paths = []
+            for path in paths:
+                print(path)
+                old_paths.append(path)
+                path_html = self.session.get(path).text
+                soup = BeautifulSoup(path_html, 'html.parser')
+                self.emails = self.emails + self.get_emails(path_html)
+                for link in soup.find_all('a'):
+                    href = link.get('href')
+                    if (self.domain in str(urllib.parse.urlparse(href, scheme='', allow_fragments=True).netloc)) and (href not in old_paths):
+                        new_paths.append(href)
+            depth = depth - 1
+        return list(set(self.emails))
 
     #def get_site_links():
 
-    #list(set(list))
-
 def main():
-    new_site = site_browser('https://tictour.com/')
-    html = new_site.scrap_emails(1)
 
 if __name__ == '__main__':
     main()
