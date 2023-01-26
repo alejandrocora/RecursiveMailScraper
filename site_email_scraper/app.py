@@ -3,6 +3,7 @@ import requests
 import urllib
 from bs4 import BeautifulSoup
 from html import unescape
+import argparse
 
 DEFAULT_HEADER = 'Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0'
 
@@ -25,7 +26,10 @@ class SiteBrowser:
         return [html, soup]
 
     def get_site_emails(self, text):
-        email_pattern = r'[a-zA-Z0-9._%+-]+@'+self.domain
+        with open('web.html', 'w') as f:
+            f.write(text)
+        email_pattern = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)|(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
+        print(list(set(re.findall(email_pattern, text))))
         return list(set(re.findall(email_pattern, text)))
 
     def get_site_paths(self, soup):
@@ -41,18 +45,41 @@ class SiteBrowser:
             new_paths = []
             for path in paths:
                 html, soup = self.dispatch_response(path)
-                self.emails = self.emails + self.get_site_emails(html)
+                self.emails += self.get_site_emails(html)
                 for link in self.get_site_paths(soup):
                     if link not in old_paths:
                         new_paths.append(link)
                 old_paths.append(path)
-            old_paths = list(set(old_paths))
+            old_paths = old_paths
             depth = depth - 1
         return list(set(self.emails))
 
-def main():
-    a = SiteBrowser('https://google.com/')
-    print(a.scrap_emails(0))
+def main(args):
+    print("urls = ", args.urls)
+    print("output = ", args.output)
+    # Perform some operation using the parsed arguments
+    for url in args.urls:
+        site = SiteBrowser(url)
+        emails = site.scrap_emails(args.depth)
+        for email in emails:
+            str_line = "[+] Found email from " + site.domain + " : " + email
+            if args.print:
+                print(str_line)
+    if args.output:
+        with open(args.output, "w") as f:
+            for url in args.urls:
+                f.write(url + "\n")
+
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Process some URLs.')
+    parser.add_argument('urls', metavar='URL', type=str, nargs='+',
+                        help='A list of one or more URLs')
+    parser.add_argument('--print', dest='print', action='store_true',
+                        help='Print the URLs')
+    parser.add_argument('--depth', dest='depth', type=int, default=1,
+                        help='Depth of search ramifications.')
+    parser.add_argument('--output', dest='output', type=str,
+                        help='The file path for the found emails.')
+    args = parser.parse_args()
+    main(args)
