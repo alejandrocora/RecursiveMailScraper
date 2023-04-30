@@ -5,7 +5,9 @@ from bs4 import BeautifulSoup
 from html import unescape
 import argparse
 
+
 DEFAULT_HEADER = 'Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0'
+
 
 class SiteBrowser:
     def __init__(self, url):
@@ -28,7 +30,7 @@ class SiteBrowser:
     def get_site_emails(self, text):
         with open('web.html', 'w') as f:
             f.write(text)
-        email_pattern = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)|(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
+        email_pattern = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
         print(list(set(re.findall(email_pattern, text))))
         return list(set(re.findall(email_pattern, text)))
 
@@ -54,10 +56,15 @@ class SiteBrowser:
             depth = depth - 1
         return list(set(self.emails))
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('urls', metavar='URL', type=str, nargs='+', help='A list of one or more URLs')
+    parser.add_argument('--print', dest='print', action='store_true', help='Print the URLs')
+    parser.add_argument('--depth', dest='depth', type=int, default=1, help='Depth of search ramifications.')
+    parser.add_argument('--output', dest='output', type=str, help='The file path for the found emails.')
+    args = parser.parse_args()
     print("urls = ", args.urls)
     print("output = ", args.output)
-    # Perform some operation using the parsed arguments
     for url in args.urls:
         site = SiteBrowser(url)
         emails = site.scrap_emails(args.depth)
@@ -72,14 +79,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some URLs.')
-    parser.add_argument('urls', metavar='URL', type=str, nargs='+',
-                        help='A list of one or more URLs')
-    parser.add_argument('--print', dest='print', action='store_true',
-                        help='Print the URLs')
-    parser.add_argument('--depth', dest='depth', type=int, default=1,
-                        help='Depth of search ramifications.')
-    parser.add_argument('--output', dest='output', type=str,
-                        help='The file path for the found emails.')
-    args = parser.parse_args()
-    main(args)
+    main()
