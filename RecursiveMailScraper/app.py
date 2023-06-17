@@ -40,19 +40,18 @@ class SiteBrowser:
     def scrap_emails(self, depth):
         html, soup = self.dispatch_response(self.url)
         self.emails = self.get_site_emails(html)
-        new_paths = self.get_site_paths(soup)
-        old_paths = [self.url]
+        visited_paths = {self.url}
+        next_paths = self.get_site_paths(soup)
         while depth > 0:
-            paths = list(set([path for path in new_paths if path not in old_paths]))
-            new_paths = []
+            paths = next_paths
+            next_paths = []
             for path in paths:
+                visited_paths.add(path)
                 html, soup = self.dispatch_response(path)
                 self.emails += self.get_site_emails(html)
-                for link in self.get_site_paths(soup):
-                    if link not in old_paths:
-                        new_paths.append(link)
-                old_paths.append(path)
-            old_paths = old_paths
+                for link in set(self.get_site_paths(soup)): # will have to make it so it excludes images
+                    if link not in visited_paths:
+                        next_paths.append(link)
             depth = depth - 1
         return list(set(self.emails))
 
