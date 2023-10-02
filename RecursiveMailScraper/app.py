@@ -32,8 +32,6 @@ class SiteBrowser:
         return [html, soup]
 
     def get_site_emails(self, text):
-        with open('web.html', 'w') as f:
-            f.write(text)
         email_pattern = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
         return list(set(email for email in re.findall(email_pattern, text) if not any(email.endswith(filetype) for filetype in EXCLUDE_TYPES)))
 
