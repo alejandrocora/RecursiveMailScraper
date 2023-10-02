@@ -41,7 +41,7 @@ class SiteBrowser:
     def scrap_emails(self, depth):
         html, soup = self.dispatch_response(self.url)
         self.emails = self.get_site_emails(html)
-        visited_paths = set()
+        visited_paths = {self.url}
         next_paths = {self.url}
         while depth > 0:
             paths = next_paths
