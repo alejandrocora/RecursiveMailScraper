@@ -20,7 +20,8 @@ positional arguments:
 
 options:
   -h, --help       show this help message and exit
-  --print          Print the URLs
+  --print          Print the URLs at the end.
+  --verbose        Print browsed URLs.
   --depth DEPTH    Depth of search ramifications.
   --output OUTPUT  The file path for the found emails.
 ```
