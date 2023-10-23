@@ -15,7 +15,6 @@ VERBOSE = False
 
 
 class SiteBrowser:
-    
     def __init__(self, url):
         self.url = url
         parsed_url = urllib.parse.urlparse(url, scheme='', allow_fragments=True)
@@ -59,7 +58,7 @@ class SiteBrowser:
             paths = next_paths
             next_paths = set()
             for path in paths:
-                if nreqs >= max:
+                if nreqs >= max and max != 0:
                     depth = 0
                     break
                 sleep(delay)
@@ -85,16 +84,16 @@ def main():
     parser.add_argument('--print', dest='print', action='store_true', help='Print the URLs at the end.')
     parser.add_argument('--verbose', dest='verbose', action='store_true', help='Print browsed URLs.')
     parser.add_argument('--depth', dest='depth', type=int, default=1, help='Depth of search ramifications. 0 means no recursion.')
-    parser.add_argument('--max', dest='max', type=int, help='The total maximun number of requests to send for each root URLs.')
+    parser.add_argument('--max', dest='max', type=int, default=0, help='The total maximun number of requests to send for each root URLs.')
     parser.add_argument('--delay', dest='delay', default=0, type=int, help='Delay in seconds after each request.')
     parser.add_argument('--output', dest='output', type=str, help='The file path for the found emails.')
     args = parser.parse_args()
     global VERBOSE
     VERBOSE = args.verbose
     depth = args.depth + 1
-    max = args.max
-    delay = args.delay
     emails = []
+    if not args.output:
+        args.print = True
     for url in args.urls:
         if not urllib.parse.urlparse(url).scheme:
             try:
@@ -108,13 +107,12 @@ def main():
                     print('[!] Failed to get site ('+ args.url +') both with HTTP and HTTPS.')
                     break
         site = SiteBrowser(url)
-        emails += site.scrap_emails(depth, max, delay)
-    if emails:
+        emails += site.scrap_emails(depth, args.max, args.delay)
+    if emails and args.print:
         print('\nFound ' + str(len(emails)) + ' emails:')
         for email in emails:
             str_line = "[+] Found email from " + site.domain + " -> " + email
-            if args.print:
-                    print(str_line)
+            print(str_line)
     if args.output:
         with open(args.output, "w") as f:
             for url in args.urls:
