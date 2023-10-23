@@ -90,7 +90,7 @@ def main():
     global VERBOSE
     VERBOSE = args.verbose
     depth = args.depth + 1
-    emails = []
+    emails = {}
     if not args.output:
         args.print = True
     for url in args.urls:
@@ -106,16 +106,15 @@ def main():
                     print('[!] Failed to get site ('+ args.url +') both with HTTP and HTTPS.')
                     break
         site = SiteBrowser(url)
-        emails += site.scrap_emails(depth, args.max, args.delay)
+        emails[url] = site.scrap_emails(depth, args.max, args.delay)
     if emails and args.print:
-        print('\nFound ' + str(len(emails)) + ' emails:')
-        for email in emails:
-            str_line = "[+] Found email from " + site.domain + " -> " + email
-            print(str_line)
-    if args.output:
-        with open(args.output, "a") as f:
-            for url in args.urls:
-                f.write(url + "\n")
+        for url in emails:
+            print('\nFound ' + str(len(emails[url])) + ' emails from ' + url + ':')
+            for email in emails[url]:
+                print("[+] " + email)
+            if args.output:
+                with open(args.output, "a") as f:
+                    f.write('[i] '+url+':\n'+'\n'.join(map(str, emails[url]))+'\n')
 
 
 if __name__ == '__main__':
