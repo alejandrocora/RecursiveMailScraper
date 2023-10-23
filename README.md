@@ -25,5 +25,5 @@ options:
   --depth DEPTH    Depth of search ramifications. 0 means no recursion.
   --max MAX        The total maximun number of requests to send for each root URLs.
   --delay DELAY    Delay in seconds after each request.
-  --output OUTPUT  The file path for the found emails.
+  --output OUTPUT  The file path to save the found emails. Emails will be appended.
 ```

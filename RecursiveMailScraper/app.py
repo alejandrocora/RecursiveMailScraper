@@ -85,7 +85,7 @@ def main():
     parser.add_argument('--depth', dest='depth', type=int, default=1, help='Depth of search ramifications. 0 means no recursion.')
     parser.add_argument('--max', dest='max', type=int, default=0, help='The total maximun number of requests to send for each root URLs.')
     parser.add_argument('--delay', dest='delay', default=0, type=int, help='Delay in seconds after each request.')
-    parser.add_argument('--output', dest='output', type=str, help='The file path for the found emails.')
+    parser.add_argument('--output', dest='output', type=str, help='The file path to save the found emails. Emails will be appended.')
     args = parser.parse_args()
     global VERBOSE
     VERBOSE = args.verbose
@@ -113,7 +113,7 @@ def main():
             str_line = "[+] Found email from " + site.domain + " -> " + email
             print(str_line)
     if args.output:
-        with open(args.output, "w") as f:
+        with open(args.output, "a") as f:
             for url in args.urls:
                 f.write(url + "\n")
 
