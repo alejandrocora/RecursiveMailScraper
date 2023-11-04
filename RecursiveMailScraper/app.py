@@ -45,11 +45,6 @@ class SiteBrowser:
         return set(link.get('href') for link in soup.find_all('a') if (self.domain in str(urllib.parse.urlparse(link.get('href'), scheme='', allow_fragments=True).netloc)) and not any(link.get('href').endswith(filetype) for filetype in EXCLUDE_TYPES))
 
     def scrap_emails(self, depth, max, delay):
-        try:
-            html, soup = self.dispatch_response(self.url)
-        except RequestException:
-            return []
-        self.emails = self.get_site_emails(html)
         visited_paths = {self.url}
         next_paths = {self.url}
         nreqs = 0
@@ -103,18 +98,21 @@ def main():
                 try:
                     requests.get(url)
                 except RequestException:
-                    print('[!] Failed to get site ('+ args.url +') both with HTTP and HTTPS.')
+                    print('[!] Failed to get site "'+ url +'" both with HTTP and HTTPS.')
                     break
         site = SiteBrowser(url)
         emails[url] = site.scrap_emails(depth, args.max, args.delay)
-    if emails and args.print:
-        for url in emails:
-            print('\nFound ' + str(len(emails[url])) + ' emails from ' + url + ':')
-            for email in emails[url]:
-                print("[+] " + email)
+    for url in emails:
+        if emails[url]:
+            if args.print:
+                print('\nFound ' + str(len(emails[url])) + ' emails from ' + url + ':')
+                for email in emails[url]:
+                    print("[+] " + email)
             if args.output:
                 with open(args.output, "a") as f:
                     f.write('[i] '+url+':\n'+'\n'.join(map(str, emails[url]))+'\n')
+        else:
+            print('\n[!] No email has been found.')
 
 
 if __name__ == '__main__':
